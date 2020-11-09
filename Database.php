@@ -109,9 +109,6 @@ class Database
     function getResult(){
         return $this->result;
     }
-    function getDBLink(){
-        return $this->dblink;
-    }
 }
 
 ?>

@@ -62,15 +62,9 @@
         <form action="" method="post">
             <div class="form-group">              
                 <select name="duty-to-update" id="duty-to-update">
-                            <option value="-1">Odaberite obavezu za izmenu:</option>
-                    <?php
-                        $mydb->select("duties", "duties.id, duties.date, duties.time, duties.description", null, null, null, null, null);
-                        while($row = $mydb->getResult()->fetch_object()):
-                    ?>
-                            <option value="<?php echo $row->id; ?>"> <?php echo $row->date. ' | '. $row->time. ' | '. $row->description; ?> </option>
-                    <?php endwhile;?>
+                    <!-- listDuties() -->
                 </select>
-                <input type="button" onclick="updateDuty()" value="Odaberi">
+                <input type="button" onclick="dutyToUpdate()" value="Odaberi">
             </div>
             
             <input type="number" name="duty-id-update" id="duty-id-update" value="" style="display: none;">
@@ -97,7 +91,7 @@
                 <textarea class="form-control" name="duty-description-update" id="duty-description-update" cols="30" rows="3"></textarea>
             </div>
 
-            <input type="submit" name="duty-update" id="duty-update" value="Izmeni stavku">
+            <input type="button" name="duty-update" id="duty-update" value="Izmeni stavku" onclick="updateDuty(this)">
         </form>    
 
     </div>
@@ -154,7 +148,7 @@
 <script>
     var arrayOfBlocks= ["duties-block", "duties-block-update", "types-block", "types-block-update"];
 
-    window.onload = hideBlocks(), display(), displayType(), listType();
+    window.onload = hideBlocks(), display(), displayType(), listType(), listDuties();
 
     function hideBlocks(){
         for(const block of arrayOfBlocks){
@@ -194,7 +188,7 @@
 //CRUD preko ajax-a 
 
     function displayType(){
-        $.get("json/types.php", function(d){
+        $.get("server.php?types", function(d){
             let data = JSON.parse(d)
             let t = document.getElementById("table-get-types")
             t.innerHTML = ""
@@ -223,13 +217,13 @@
         var s2 = document.getElementById("duty-type-update")
         var s3 = document.getElementById("type-id-update")
 
-        optionsInSelect(s1)
-        optionsInSelect(s2)
-        optionsInSelect(s3)
+        optionsInSelectTypes(s1)
+        optionsInSelectTypes(s2)
+        optionsInSelectTypes(s3)
     }
 
-    function optionsInSelect(obj){
-        $.get("json/types.php", function(d){
+    function optionsInSelectTypes(obj){
+        $.get("server.php?types", function(d){
             let data = JSON.parse(d)
             obj.innerHTML = ""
             let ost = document.createElement("option")
@@ -246,15 +240,39 @@
         })
     }
 
+    function listDuties() {
+        var optionsDuties = document.getElementById("duty-to-update")
+
+        optionInSelectDuties(optionsDuties)
+    }
+
+    function optionInSelectDuties(obj){
+        $.get("server.php?duties", function(d) {
+            let data = JSON.parse(d)
+            obj.innerHTML = ""
+            let osd = document.createElement("option")
+            osd.value = -1
+            osd.innerHTML = "Odaberite obavezu za izmenu:"
+            obj.appendChild(osd)
+            for (let elem of data){
+                let o = document.createElement("option")
+                o.value = elem.id
+                o.innerHTML = elem.date + " | " + elem.time + " | " + elem.description
+
+                obj.appendChild(o)
+            }
+        })
+    }
+
     function searchByDate(){
         let date = document.querySelector('input[name="schedule"]').value
         display(date);
     }
 
     function display(date){
-        $.get("json/duties.php", function(d){
+        $.get("server.php?duties", function(d){
             let data = JSON.parse(d)
-            data = sortData(data)
+            // data = sortData(data)
             let t = document.getElementById("table-get")
             t.innerHTML = ""
             for(let i = 0; i < data.length; i++){
@@ -273,7 +291,7 @@
                     let t1 = document.createTextNode(elem["date"] + '  /  ' + elem["time"])
 
                     let c2 = r.insertCell();
-                    let t2 = document.createTextNode(elem["type"] + '  /  ' + elem["description"])
+                    let t2 = document.createTextNode(elem["name"] + '  /  ' + elem["description"])
 
                     let c3 = r.insertCell();
                     let b1 = document.createElement("input");
@@ -299,7 +317,7 @@
                         let t1 = document.createTextNode(elem["date"] + '  /  ' + elem["time"])
 
                         let c2 = r.insertCell();
-                        let t2 = document.createTextNode(elem["type"] + '  /  ' + elem["description"])
+                        let t2 = document.createTextNode(elem["name"] + '  /  ' + elem["description"])
 
                         let c3 = r.insertCell();
                         let b1 = document.createElement("input");
@@ -321,39 +339,16 @@
         })
     }
 
-    function sortData(data){
-        data.sort(function(a,b){
-            
-            let f = a.date + ' ' + a.time
-            f = new Date(f)
-            s = b.date + ' ' + b.time
-            s = new Date(s)
-            
-            let results = f.getFullYear() < s.getFullYear() ? -1 : f.getFullYear() > s.getFullYear() ? 1 : 0;
-
-            if (results == 0){
-                results = f.getMonth() < s.getMonth() ? -1 : f.getMonth() > s.getMonth() ? 1 : 0;
-            }
-            if (results == 0){
-                results = f.getDate() < s.getDate() ? -1 : f.getDate() > s.getDate() ? 1 : 0;
-            }
-            if (results == 0){
-                results = f.getHours() < s.getHours() ? -1 : f.getHours() > s.getHours() ? 1 : 0;
-            }
-            if (results == 0){
-                results = f.getMinutes() < s.getMinutes() ? -1 : f.getMinutes() > s.getMinutes() ? 1 : 0;
-            }
-            return results
-        })
-        return data
-    }
-
     function insertDuty(elem){
         let date = elem.parentNode.querySelector('input[name=duty-date]').value
         let time = elem.parentNode.querySelector('input[name=duty-time]').value
         let ti = elem.parentNode.querySelector('select[name=duty-type]').value
-        // console.log(ti)
         let desc = elem.parentNode.querySelector('textarea[name=duty-description]').value
+
+        if(date == '' || time == '' || ti == '-1' || desc == '' ){
+            alert("Sva polja moraju biti popunjena!")
+            return
+        }
 
         $.post("server.php", {
             'duty_date' : date,
@@ -371,6 +366,11 @@
     function insertType(elem){
         let name = elem.parentNode.querySelector('input[name=type-name]').value
 
+        if(name == ''){
+            alert("Morate popuniti naziv tipa obeveze!")
+            return
+        }
+
         $.post("server.php", {
             'type_name' : name,
         },
@@ -382,12 +382,14 @@
         })
     }
 
-    function updateDuty(){
+    function dutyToUpdate(){
         let id = document.getElementById("duty-to-update").value
+
         if(id == -1){
             alert("Morate odabrati obavezu za izmenu!")
             return
         }
+        
         $.get("json/duties.php", function(d){
             try{
                 let data = JSON.parse(d)
@@ -408,13 +410,50 @@
         })
     }
 
+    function updateDuty(elem){
+        let id = elem.parentNode.querySelector('input[name=duty-id-update]').value
+        let date = elem.parentNode.querySelector('input[name=duty-date-update]').value
+        let time = elem.parentNode.querySelector('input[name=duty-time-update]').value
+        let ti = elem.parentNode.querySelector('select[name=duty-type-update]').value
+        let desc = elem.parentNode.querySelector('textarea[name=duty-description-update]').value
+
+        if(id == ''){
+            alert("Morate odabrati obavezu za izmenu")
+            return
+        }
+
+        if(date == '' || time == '' || ti == '-1' || desc == '' ){
+            alert("Sva polja moraju biti popunjena!")
+            return
+        }
+
+        $.post("server.php", {
+            'update-id' : id,
+            'update-duty_date' : date,
+            'update-duty_time' : time,
+            'update-duty_ti' : ti,
+            'update-duty_desc' : desc,
+        },
+        function(r){
+            alert(r)
+            display()
+        })
+    }
+
     function updateType(elem){
         let id = elem.parentNode.querySelector('select[name=type-id-update]').value
         let name = elem.parentNode.querySelector('input[name=type-name-update]').value
-        if(id == -1 ){
+
+        if(id == -1){
             alert("Morate odabrati tip za izmenu!")
             return
         }
+
+        if(name == ''){
+            alert("Morate popuniti naziv tipa obeveze!")
+            return
+        }
+
         $.post("server.php", {
             'update_type_id': id,
             'update_type_name' : name
