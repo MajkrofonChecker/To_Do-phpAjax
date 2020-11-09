@@ -1,0 +1,62 @@
+.btn-group {
+    /* margin: 0 20%; */
+    width: 100%;
+}
+
+.btn-group .btn {
+    width: 25%;
+}
+
+.form_block{
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#duties-block{
+    display: block;
+    text-align: center;
+    /* max-width: 800px; */
+}
+
+#duties-block form{
+    display: inline-block;
+}
+
+#duties-block-update{
+    display: block;
+    text-align: center;
+    /* max-width: 800px; */
+}
+
+#duties-block-update form{
+    display: inline-block;
+}
+
+#types-block{
+    text-align: center;
+}
+
+#types-block table{
+    margin: 0 auto;
+    max-width: 400px;
+    /* display: inline-block; */
+}
+
+#types-block-update{
+    display: block;
+    text-align: center;
+}
+
+#types-block-update form{
+    display: inline-block;
+}
+
+#get_duties {
+    background-color: rgb(187, 166, 139);
+    margin-top: 30px;
+    text-align: center;
+}
+
+#get_duties form{
+    display: inline-block;
+}
